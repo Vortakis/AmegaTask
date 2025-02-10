@@ -1,5 +1,4 @@
-﻿using FinPriceFeed.Domain.Model;
-using Refit;
+﻿using Refit;
 
 namespace FinPriceFeed.ExternalProviders
 {
@@ -9,6 +8,6 @@ namespace FinPriceFeed.ExternalProviders
         Task<T> GetFinInstrumentsAsync<T>([AliasAs("path")] string path);
 
         [Get("/{path}")]
-        Task<T> GetCurrentPriceAsync<T>([AliasAs("path")] string path, [Query] IDictionary<string,string> queryParams);
+        Task<T> GetCurrentPriceAsync<T>([AliasAs("path")] string path, [Query] IDictionary<string, string> queryParams);
     }
 }

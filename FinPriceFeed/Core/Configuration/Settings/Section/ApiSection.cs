@@ -1,4 +1,4 @@
-﻿namespace FinPriceFeed.Configuration.Section
+﻿namespace FinPriceFeed.Core.Configuration.Settings.Section
 {
     public class ApiSection
     {

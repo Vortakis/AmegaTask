@@ -6,7 +6,7 @@ namespace FinPriceFeed.Service
     {
         void AddSubscriber(string connectionId);
 
-        void RemoveSubscriber(string connectionId);
+        Task RemoveSubscriber(string connectionId);
 
         Task SubscribeToSymbols(string connectionId, string symbolString);
 

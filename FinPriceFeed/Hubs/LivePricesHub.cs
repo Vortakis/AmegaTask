@@ -20,7 +20,7 @@ namespace FinPriceFeed.ExternalProviders
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            _livePriceWSService.RemoveSubscriber(Context.ConnectionId);
+            await _livePriceWSService.RemoveSubscriber(Context.ConnectionId);
             await base.OnDisconnectedAsync(exception);
         }
 

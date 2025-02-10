@@ -1,17 +1,14 @@
-using FinPriceFeed.Configuration;
 using FinPriceFeed.Core.Configuration;
-using FinPriceFeed.ExternalClients;
+using FinPriceFeed.Core.Configuration.Settings;
 using FinPriceFeed.ExternalProviders;
 using FinPriceFeed.ExternalProviders.TwelveData.Service;
 using FinPriceFeed.Service;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualBasic;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var settings = builder.Configuration.Get<Settings>();
+var settings = builder.Configuration.Get<RootSettings>();
 var selectedProvider = settings.ExternalProviderSettings.Selected;
 builder.Configuration.Bind(settings);
 builder.Services.AddSingleton(settings);
@@ -53,11 +50,13 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddSingleton<IFinInstrumentService, FinInstrumentService>();
 builder.Services.AddSingleton<IExternalProviderWebSocketService, TwelveDataWebSocketService>();
+builder.Services.AddSingleton<IExternalProviderMessageHandler, TwelveDataMessageHandler>();
 builder.Services.AddSingleton<ILivePriceWebSocketService, LivePriceWebSocketService>();
+
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");  
+app.UseCors("AllowAll");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

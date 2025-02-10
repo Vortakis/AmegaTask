@@ -1,16 +1,15 @@
-﻿using FinPriceFeed.Configuration.Section;
-using FinPriceFeed.Core.Configuration;
+﻿using FinPriceFeed.Core.Configuration.Settings;
+using FinPriceFeed.Core.Configuration.Settings.Section;
 using FinPriceFeed.Core.Exceptions;
 using FinPriceFeed.ExternalClients;
 using FinPriceFeed.ExternalProviders;
-using Microsoft.Extensions.DependencyInjection;
 using Refit;
 
-namespace FinPriceFeed.Configuration
+namespace FinPriceFeed.Core.Configuration
 {
     public static class ExternalProvidersExtension
     {
-        public static IServiceCollection AddExternalProviders(this IServiceCollection services, Settings settings)
+        public static IServiceCollection AddExternalProviders(this IServiceCollection services, RootSettings settings)
         {
             string selectedExt = settings.ExternalProviderSettings.Selected;
             ApiSection extProviderEndpoint = settings.ExternalProviderSettings.Connections

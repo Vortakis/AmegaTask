@@ -1,5 +1,4 @@
-﻿using FinPriceFeed.Domain.Enum;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace FinPriceFeed.ExternalProviders.Tiingo.Model
 {

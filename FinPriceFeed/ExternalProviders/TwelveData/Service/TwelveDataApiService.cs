@@ -1,14 +1,10 @@
 ﻿
 using AutoMapper;
-using FinPriceFeed.Configuration;
 using FinPriceFeed.Domain.Enum;
 using FinPriceFeed.Domain.Model;
 using FinPriceFeed.ExternalProviders;
-using FinPriceFeed.ExternalProviders.Tiingo;
 using FinPriceFeed.ExternalProviders.TwelveData;
 using FinPriceFeed.ExternalProviders.TwelveData.DTOs;
-using Microsoft.Extensions.Options;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace FinPriceFeed.ExternalClients
@@ -20,7 +16,7 @@ namespace FinPriceFeed.ExternalClients
         private readonly ILogger<TwelveDataApiService> _logger;
 
         public TwelveDataApiService(
-            IExternalProviderClient twelveDataClient, 
+            IExternalProviderClient twelveDataClient,
             ILogger<TwelveDataApiService> logger,
             IMapper mapper)
         {

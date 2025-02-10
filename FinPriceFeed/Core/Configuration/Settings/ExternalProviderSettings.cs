@@ -1,6 +1,6 @@
-﻿using FinPriceFeed.Configuration.Section;
+﻿using FinPriceFeed.Core.Configuration.Settings.Section;
 
-namespace FinPriceFeed.Configuration
+namespace FinPriceFeed.Core.Configuration.Settings
 {
     public class ExternalProviderSettings
     {

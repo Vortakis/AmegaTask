@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace FinPriceFeed.Core.Model
+﻿namespace FinPriceFeed.Core.Model
 {
     public class PaginatedResult<T>
     {

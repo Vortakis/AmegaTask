@@ -9,7 +9,7 @@ namespace FinPriceFeed.ExternalProviders.TwelveData.Model
         public string Action { get; set; }
 
         [JsonPropertyName("params")]
-        public TDSymbol Parameters { get; set; } = new ();
+        public TDSymbol Parameters { get; set; } = new();
     }
 }
 

@@ -1,6 +1,5 @@
 ﻿using FinPriceFeed.Domain.Enum;
 using FinPriceFeed.ExternalProviders;
-using FinPriceFeed.ExternalProviders.TwelveData.Model;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
@@ -9,32 +8,39 @@ namespace FinPriceFeed.Service
     public class LivePriceWebSocketService : ILivePriceWebSocketService
     {
         private readonly IExternalProviderWebSocketService _extWebSocketService;
+        private readonly IExternalProviderMessageHandler _extMessageHandler;
+
         private readonly IHubContext<LivePricesHub> _hubContext;
 
+        // Symbol -> Subscribers mapping to avoid redundant subscriptions to the provider.
         private static readonly ConcurrentDictionary<string, HashSet<string>> _activeSymbols = new();
         private static readonly ConcurrentDictionary<string, bool> _subscribers = new();
 
         public LivePriceWebSocketService(
-            IExternalProviderWebSocketService extWebSocketService, 
+            IExternalProviderWebSocketService extWebSocketService,
+            IExternalProviderMessageHandler extMessageHandler,
             IHubContext<LivePricesHub> hubContext)
         {
             _hubContext = hubContext;
             _extWebSocketService = extWebSocketService;
-            extWebSocketService.OnPriceUpdate += BroadcastPriceUpdate;
-            extWebSocketService.OnSubscriptionUpdate += BroadcastSubscriptionFailed;
+            _extMessageHandler = extMessageHandler;
+
+            // Can improve performance if queue batch updates is implemented, not just one event by one.
+            _extMessageHandler.OnPriceUpdate += BroadcastPriceUpdate;
+            _extMessageHandler.OnSubscriptionUpdate += BroadcastSubscriptionFailed;
         }
 
         public void AddSubscriber(string connectionId) => _subscribers.TryAdd(connectionId, true);
 
-        public void RemoveSubscriber(string connectionId)
+        public async Task RemoveSubscriber(string connectionId)
         {
             _subscribers.TryRemove(connectionId, out _);
-            UnsubscribeFromAllSymbols(connectionId);
+            await UnsubscribeFromAllSymbols(connectionId);
         }
 
         public async Task SubscribeToSymbols(string connectionId, string symbolString)
         {
-            if (!_subscribers.ContainsKey(connectionId)) return;
+            if (!_subscribers.TryGetValue(connectionId, out _)) return;
 
             symbolString = Uri.UnescapeDataString(symbolString).ToUpper();
 
@@ -53,6 +59,7 @@ namespace FinPriceFeed.Service
                 }
             }
 
+            // Each symbol is subscribed only once, regardless of the subscriber.
             if (newSymbols.Any())
             {
                 await _extWebSocketService.SubscribeToLivePrices(string.Join(",", newSymbols));
@@ -61,7 +68,7 @@ namespace FinPriceFeed.Service
 
         public async Task UnsubscribeFromSymbols(string connectionId, string symbolString)
         {
-            if (!_subscribers.ContainsKey(connectionId)) return;
+            if (!_subscribers.TryGetValue(connectionId, out _)) return;
 
             symbolString = Uri.UnescapeDataString(symbolString).ToUpper();
 
@@ -75,6 +82,8 @@ namespace FinPriceFeed.Service
                     lock (symbolSubs)
                     {
                         symbolSubs.Remove(connectionId);
+
+                        // Unsubscribe symbol only when no subscribers left.
                         if (symbolSubs.Count == 0)
                         {
                             _activeSymbols.TryRemove(symbol, out _);
@@ -94,6 +103,7 @@ namespace FinPriceFeed.Service
         {
             symbol = symbol.ToUpper();
 
+            // Sends price updates to all subscribers of a symbol in parallel to improve performance.
             if (_activeSymbols.TryGetValue(symbol, out var subscribers))
             {
                 var tasks = subscribers.Select(subscriber => _hubContext.Clients.Client(subscriber).SendAsync("ReceivePriceUpdate", symbol, price));
@@ -116,11 +126,16 @@ namespace FinPriceFeed.Service
                         if (!subscribersSymbolsToNotify.ContainsKey(subscriber))
                             subscribersSymbolsToNotify[subscriber] = new HashSet<string>();
 
+                        // Groups failed symbols per subscriber to minimize the number of messages sent.
                         subscribersSymbolsToNotify[subscriber].Add(upperSymbol);
                     }
+
+                    // Unsubscribe symbol from _activeSymbols.
+                    _activeSymbols.TryRemove(upperSymbol, out _);
                 }
             }
 
+            // Notify all connections that were subscribing on that symbol.
             var notificationTasks = subscribersSymbolsToNotify.Select(subscriberSymbols =>
                 _hubContext.Clients.Client(subscriberSymbols.Key)
                     .SendAsync("SubscriptionFailed", type.ToString(), string.Join(",", subscriberSymbols.Value))
@@ -129,7 +144,7 @@ namespace FinPriceFeed.Service
             await Task.WhenAll(notificationTasks);
         }
 
-        private void UnsubscribeFromAllSymbols(string connectionId)
+        private async Task UnsubscribeFromAllSymbols(string connectionId)
         {
             foreach (var symbol in _activeSymbols.Keys)
             {
@@ -138,12 +153,14 @@ namespace FinPriceFeed.Service
                     lock (symbolSubs)
                     {
                         symbolSubs.Remove(connectionId);
-                        if (!symbolSubs.Any())
-                        {
-                            _activeSymbols.TryRemove(symbol, out _);
-                            _extWebSocketService.UnsubscribeFromLivePrices(symbol);
-                        }
                     }
+
+                    if (!symbolSubs.Any())
+                    {
+                        _activeSymbols.TryRemove(symbol, out _);
+                        await _extWebSocketService.UnsubscribeFromLivePrices(symbol);
+                    }
+
                 }
             }
         }

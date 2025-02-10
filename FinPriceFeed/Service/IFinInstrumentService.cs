@@ -1,7 +1,6 @@
 ﻿using FinPriceFeed.Core.Model;
 using FinPriceFeed.Domain.Enum;
 using FinPriceFeed.Domain.Model;
-using System.Net;
 
 namespace FinPriceFeed.Service
 {

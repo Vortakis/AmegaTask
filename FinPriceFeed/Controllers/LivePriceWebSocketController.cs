@@ -1,6 +1,4 @@
-﻿using FinPriceFeed.Configuration;
-using FinPriceFeed.ExternalProviders;
-using FinPriceFeed.ExternalProviders.Tiingo;
+﻿using FinPriceFeed.Core.Configuration.Settings;
 using FinPriceFeed.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,20 +11,28 @@ namespace FinPriceFeed.Controllers
         private readonly ILivePriceWebSocketService _webSocketService;
         private readonly ExternalProviderSettings _extProviderSettings;
         public LivePriceWebSocketController(
-            ILivePriceWebSocketService webSocketService, 
+            ILivePriceWebSocketService webSocketService,
             ExternalProviderSettings extProviderSettings)
         {
             _webSocketService = webSocketService;
             _extProviderSettings = extProviderSettings;
         }
 
+        [HttpGet]
+        public IActionResult GetSetting()
+        {
+            bool showWebSocket = true;
+            if (_extProviderSettings.Selected.Equals("tiingo", StringComparison.OrdinalIgnoreCase))
+                showWebSocket = false;
+
+            return Ok(new { showWebSocket });
+        }
+
         [HttpGet("connect")]
         public IActionResult Connect()
         {
-            if (_extProviderSettings.Selected.Equals("tiingo", StringComparison.OrdinalIgnoreCase))
-            {
-                return NotFound("Tiingo WebSocket is not implemented yet!");
-            }
+            var result = Unavailable();
+            if (result != null) return result;
 
             _webSocketService.AddSubscriber(HttpContext.Connection.Id);
             return Ok();
@@ -35,10 +41,8 @@ namespace FinPriceFeed.Controllers
         [HttpGet("disconnect")]
         public IActionResult Disconnect()
         {
-            if (_extProviderSettings.Selected.Equals("tiingo", StringComparison.OrdinalIgnoreCase))
-            {
-                return NotFound("Tiingo WebSocket is not implemented yet!");
-            }
+            var result = Unavailable();
+            if (result != null) return result;
 
             _webSocketService.RemoveSubscriber(HttpContext.Connection.Id);
             return Ok();
@@ -47,10 +51,8 @@ namespace FinPriceFeed.Controllers
         [HttpGet("subscribe/{symbol}")]
         public async Task<IActionResult> Subscribe(string symbol)
         {
-            if (_extProviderSettings.Selected.Equals("tiingo", StringComparison.OrdinalIgnoreCase))
-            {
-                return NotFound("Tiingo WebSocket is not implemented yet!");
-            }
+            var result = Unavailable();
+            if (result != null) return result;
 
             _webSocketService.AddSubscriber(HttpContext.Connection.Id);
 
@@ -64,16 +66,23 @@ namespace FinPriceFeed.Controllers
         [HttpGet("unsubscribe/{symbol}")]
         public async Task<IActionResult> Unsubscribe(string symbol)
         {
-            if (_extProviderSettings.Selected.Equals("tiingo", StringComparison.OrdinalIgnoreCase))
-            {
-                return NotFound("Tiingo WebSocket is not implemented yet!");
-            }
+            var result = Unavailable();
+            if (result != null) return result;
 
             if (string.IsNullOrEmpty(symbol))
                 return BadRequest("Symbol is required.");
 
             await _webSocketService.UnsubscribeFromSymbols(HttpContext.Connection.Id, symbol);
             return Ok();
+        }
+
+        private NotFoundObjectResult Unavailable()
+        {
+            if (_extProviderSettings.Selected.Equals("tiingo", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound("Tiingo WebSocket not implemented yet. Switch to TwelveData external provider for WebSocket use.");
+            }
+            else return null;
         }
     }
 }

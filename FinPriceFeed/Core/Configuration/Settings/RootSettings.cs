@@ -1,6 +1,6 @@
-﻿namespace FinPriceFeed.Configuration
+﻿namespace FinPriceFeed.Core.Configuration.Settings
 {
-    public class Settings
+    public class RootSettings
     {
         public ExternalProviderSettings ExternalProviderSettings { get; set; } = new ExternalProviderSettings();
     }

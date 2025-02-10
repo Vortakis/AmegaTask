@@ -1,32 +1,27 @@
-﻿using FinPriceFeed.Configuration;
-using FinPriceFeed.Configuration.Section;
+﻿using FinPriceFeed.Core.Configuration.Settings;
+using FinPriceFeed.Core.Configuration.Settings.Section;
 using FinPriceFeed.Domain.Enum;
-using FinPriceFeed.Domain.Model;
-using Microsoft.AspNetCore.SignalR;
-using System.Net.WebSockets;
-using System.Text.Json;
-using System.Text;
-using FinPriceFeed.ExternalProviders.Tiingo.Model;
 using FinPriceFeed.ExternalProviders.TwelveData.Model;
-using Microsoft.Extensions.Logging;
+using System.Net.WebSockets;
+using System.Text;
+using System.Text.Json;
 
 namespace FinPriceFeed.ExternalProviders.TwelveData.Service
 {
     public class TwelveDataWebSocketService : IExternalProviderWebSocketService
     {
-        public event Func<SubscriptionType, string[], Task> OnSubscriptionUpdate = async (_, _) => { };
-        public event Func<string, decimal, Task> OnPriceUpdate = async (_, _) => { };
-
+        private readonly IExternalProviderMessageHandler _extProviderMessageHandler;
         private readonly ILogger<TwelveDataWebSocketService> _logger;
         private readonly ApiSection _extProviderEndpoint;
 
         private ClientWebSocket _webSocket = new();
 
-
         public TwelveDataWebSocketService(
+            IExternalProviderMessageHandler extProviderMessageHandler,
             ExternalProviderSettings extProviderSettings,
             ILogger<TwelveDataWebSocketService> logger)
         {
+            _extProviderMessageHandler = extProviderMessageHandler;
             _extProviderEndpoint = extProviderSettings.Connections["TwelveData"];
             _logger = logger;
         }
@@ -85,7 +80,6 @@ namespace FinPriceFeed.ExternalProviders.TwelveData.Service
             await RequestToWebSocketAsync(_webSocket, wsRequest);
         }
 
-
         private async Task RequestToWebSocketAsync(ClientWebSocket ws, TDRequest wsRequest)
         {
             try
@@ -110,62 +104,8 @@ namespace FinPriceFeed.ExternalProviders.TwelveData.Service
                 {
                     var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-                    if (message.Contains("subscribe-status"))
-                    {
-                        await HandleSubscription(message);
-                        continue;
-                    }
-                    else if (message.Contains("price"))
-                    {
-                        await HandlePriceUpdate(message);
-                        continue;
-                    }
+                    await _extProviderMessageHandler.ProcessMessage(message);
                 }
-            }
-        }
-
-        private async Task HandleSubscription(string message)
-        {
-            _logger.LogInformation($"Successfully subscribed to ''.");
-
-            var response = Deserialise<TDSubscriptionResponse>(message);
-            if (response == null)
-            {
-                _logger.LogError($"Deserialising Subscribe/Unsubscribe response failed. Message: {message}");
-                return;
-            }
-            var subscriptionType = response.Event.Contains("unsubscribe", StringComparison.OrdinalIgnoreCase) ?
-                                    SubscriptionType.Unsubscribe : SubscriptionType.Subscribe;
-
-            if (response.Fails != null && response.Fails.Length > 0)
-            {
-                var failedSymbols = response.Fails.Select(s => s.Symbol).ToArray();
-
-                await OnSubscriptionUpdate.Invoke(subscriptionType, failedSymbols);
-            }
-        }
-
-        private async Task HandlePriceUpdate(string message)
-        {
-            var response = Deserialise<TDPriceResponse>(message);
-            if (response == null)
-                return;
-
-            await OnPriceUpdate.Invoke(response.Symbol, response.Price);
-        }
-
-        private T? Deserialise<T>(string message)
-        {
-            T? response;
-            try
-            {
-                response = JsonSerializer.Deserialize<T>(message);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Parsing External Message threw exception: {ex.Message} ");
-                return default;
             }
         }
     }

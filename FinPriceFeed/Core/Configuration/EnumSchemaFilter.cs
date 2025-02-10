@@ -16,7 +16,7 @@ namespace FinPriceFeed.Core.Configuration
                 {
                     schema.Enum.Add(new OpenApiString(enumName));
                 }
-                schema.Type = "string"; 
+                schema.Type = "string";
             }
         }
     }

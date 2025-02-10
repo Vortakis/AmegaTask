@@ -13,6 +13,6 @@ namespace FinPriceFeed.ExternalProviders.TwelveData
             { MarketType.Stock, "stocks" },
             { MarketType.Forex, "forex_pairs" },
             { MarketType.Crypto, "cryptocurrencies" }
-        };   
+        };
     }
 }

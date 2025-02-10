@@ -3,7 +3,6 @@ using FinPriceFeed.Domain.Enum;
 using FinPriceFeed.Domain.Model;
 using FinPriceFeed.ExternalClients;
 using Microsoft.Extensions.Caching.Memory;
-using System.Collections.Generic;
 
 namespace FinPriceFeed.Service
 {
@@ -38,9 +37,9 @@ namespace FinPriceFeed.Service
 
             var paginatedResult = result.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-            var response = new PaginatedResult<FinInstrument>(paginatedResult,result.Count, paginatedResult.Count);
+            var response = new PaginatedResult<FinInstrument>(paginatedResult, result.Count, paginatedResult.Count);
 
-            return response; 
+            return response;
         }
 
         public async Task<List<FinInstrumentPrice>> GetCurrentFinInstrumentPriceAsync(string ticker, MarketType marketType)

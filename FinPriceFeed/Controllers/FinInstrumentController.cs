@@ -1,3 +1,4 @@
+using FinPriceFeed.Domain.Enum;
 using FinPriceFeed.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +22,16 @@ namespace FinPriceFeed.Controllers
             var finInstrumnets = await _finInstrumentService.GetAvailableFinInstrumentsAsync(page, pageSize);
 
             return Ok(finInstrumnets);
+        }
+
+        [HttpGet("{ticker}/price")]
+        public async Task<IActionResult> GetCurrentPrice(string ticker, [FromQuery] MarketType marketType = MarketType.Undefined)
+        {
+            ticker = Uri.UnescapeDataString(ticker);
+
+            var finInstrumnetPrices = await _finInstrumentService.GetCurrentFinInstrumentPriceAsync(ticker, marketType);
+
+            return Ok(finInstrumnetPrices);
         }
     }
 }
