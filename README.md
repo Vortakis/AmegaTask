@@ -7,7 +7,7 @@
   -  **Default selected**: **"TwelveData"**. Can be changed in appsettings.json
   -  **TwelveData**: RST API & WebSocket Integration.
   -  **Tiingo**: Only REST API (*WebSocket not implemented yet*).
-  -  **Token/ApiKey** should be placed in **appsettings.json**.
+  -  **ApiKey** should be placed in **appsettings.json**.
 
 **Swagger for REST API**:
   [http://localhost:5174/swagger](http://localhost:5174/swagger)  
