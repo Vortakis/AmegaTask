@@ -4,10 +4,11 @@
 - It consists of a **REST API** and a **WebSocket**.  
 - REST API includes Controller just to send events to WebSocket but cannot receive any broadcast.
 - Implementated integration with 2 External Providers.  
-  -  **Default selected**: **"TwelveData"**. Can be changed in appsettings.json
   -  **TwelveData**: RST API & WebSocket Integration.
   -  **Tiingo**: Only REST API (*WebSocket not implemented yet*).
   -  **ApiKey** should be placed in **appsettings.json**.
+  -  **Default selected**: **"TwelveData"**. Can be changed in appsettings.json
+
 
 **Swagger for REST API**:
   [http://localhost:5174/swagger](http://localhost:5174/swagger)  
