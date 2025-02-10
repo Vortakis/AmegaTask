@@ -1,53 +1,39 @@
-# Ignore Visual Studio Code settings
-.vscode/
-
-# Ignore build output
-bin/
-obj/
-
-# Ignore user-specific files
+# Visual Studio
+.vs/
 *.user
 *.suo
-*.ntvs*
-*.njsproj
+*.cache
+*.pdb
+*.obj
+*.log
+*.tlog
+*.ide
+
+# Visual Studio Code
+.vscode/
+.vscode/*
+
+# Build output
+bin/
+obj/
+out/
+
+# User-specific files
+*.rsuser
+*.userosscache
 *.sln.docstates
 
-# Ignore logs and lock files
-*.log
-*.lock
-npm-debug.log
-yarn-debug.log
-yarn-error.log
+# ASP.NET & .NET Core
+# appsettings*.json
+# secrets.json
+# .env
 
-# Ignore environment files (if using environment variables)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Ignore NuGet packages
-*.nupkg
+# Dependency directories
+node_modules/
 packages/
-project.lock.json
-project.assets.json
 
-# Ignore .NET runtime and dependency management files
-.DS_Store
-*.pdb
-*.dll
-*.exe
-*.so
-*.dylib
-*.pyc
-
-# Ignore JetBrains Rider / ReSharper files
-.idea/
-*.sln.iml
-
-# Ignore MacOS system files
-._*
-Thumbs.db
-
-# Ignore Docker files (if using Docker)
-docker-compose.override.yml
+# Logs & Debugging
+*.log
+*.nlog
+*.trace
+*.swp

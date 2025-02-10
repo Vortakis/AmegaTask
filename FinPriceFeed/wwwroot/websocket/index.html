@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Price Feed</title>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+</head>
+<body>
+    <h2>Live Price Feed</h2>
+    <div>
+        <input type="text" id="symbol" placeholder="Enter symbol (e.g. AAPL)" />
+        <button onclick="subscribeToSymbol()">Subscribe</button>
+        <button onclick="unsubscribeToSymbol()">Unsubscribe</button>
+
+    </div>
+    
+    <div>
+        <div>
+            <h3>Subscriptions:</h3>
+            <ul id="subscriptions"></ul>
+        </div>
+
+        <div>
+            <h3>Price Updates:</h3>
+            <ul id="priceUpdates"></ul>
+        </div>
+    </div>
+
+
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/livePricesHub")
+            .build();
+
+        connection.on("ReceivePriceUpdate", (symbol, price) => {
+            const list = document.getElementById("priceUpdates");
+            const newItem = document.createElement("li");
+            newItem.textContent = `${symbol}: ${price}`;
+            list.appendChild(newItem);
+        });
+
+        connection.on("SubscriptionFailed", (subType, symbols) => {
+            const list = document.getElementById("subscriptions");
+            const newItem = document.createElement("li");
+            newItem.textContent = `Failed ${subType}: ${symbols}`;
+            list.appendChild(newItem);
+        });
+
+        connection.start()
+            .then(() => {
+                console.log("Connected to SignalR hub");
+            })
+            .catch(err => {
+                console.error("Error connecting to SignalR:", err);
+            });
+
+
+        function subscribeToSymbol() {
+            const symbol = document.getElementById("symbol").value;
+            if (symbol) {
+                connection.send("SubscribeToSymbols", symbol)
+                    .then(() => {
+                        console.log(`Subscribed to symbols: ${symbol}`);
+                        const list = document.getElementById("subscriptions");
+                        const newItem = document.createElement("li");
+                        newItem.textContent = `Successful Subscribe: ${symbol}`;
+                        list.appendChild(newItem);
+                    })
+                    .catch(err => {
+                        console.error("Error subscribing to symbols:", err);
+                    });
+            }
+        }
+
+        function unsubscribeToSymbol() {
+            const symbol = document.getElementById("symbol").value;
+            if (symbol) {
+                connection.send("UnsubscribeFromSymbols", symbol)
+                    .then(() => {
+                        console.log(`Unsubscribed to symbols: ${symbol}`);
+                        const list = document.getElementById("subscriptions");
+                        const newItem = document.createElement("li");
+                        newItem.textContent = `Successful Unsubscribe: ${symbol}`;
+                        list.appendChild(newItem);
+                    })
+                    .catch(err => {
+                        console.error("Error unsubscribing to symbols:", err);
+                    });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+@FinPriceFeed_HostAddress = http://localhost:5174
+
+GET {{FinPriceFeed_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
